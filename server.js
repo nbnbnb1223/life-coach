@@ -14,6 +14,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('.'));
 
+// 设置请求超时中间件
+app.use((req, res, next) => {
+    req.setTimeout(30000); // 30秒请求超时
+    res.setTimeout(30000);
+    next();
+});
+
 // API配置
 const API_KEY = process.env.API_KEY || '068552d9-debe-44e0-b03a-217a820c5cf8';
 const API_URL = process.env.API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
@@ -24,10 +31,18 @@ const systemMessage = {
     content: '你是一位专业的生活教练，擅长倾听、共情和提供建设性的建议。你的目标是通过对话帮助用户实现个人成长，提供积极、实用的指导。请用温暖、专业的语气与用户交流，给出具体、可行的建议。'
 };
 
+// 健康检查端点
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok' });
+});
+
 // 处理聊天请求
 app.post('/chat', async (req, res) => {
     try {
         const userMessage = req.body.message;
+        if (!userMessage) {
+            return res.status(400).json({ error: '消息内容不能为空' });
+        }
         
         // 设置响应头，支持流式输出
         res.setHeader('Content-Type', 'text/event-stream');
@@ -53,7 +68,7 @@ app.post('/chat', async (req, res) => {
                 'Authorization': `Bearer ${API_KEY}`
             },
             body: JSON.stringify(requestData),
-            timeout: 60000 // 60秒超时
+            timeout: 30000 // 30秒超时
         });
 
         // 检查响应状态
@@ -94,6 +109,13 @@ app.post('/chat', async (req, res) => {
         response.body.on('end', () => {
             res.end();
         });
+
+        // 错误处理
+        response.body.on('error', (error) => {
+            console.error('流处理错误:', error);
+            res.status(500).json({ error: '处理响应流时发生错误' });
+        });
+
     } catch (error) {
         console.error('处理请求失败:', error);
         const errorMessage = error.message || '服务器内部错误';
@@ -101,7 +123,12 @@ app.post('/chat', async (req, res) => {
     }
 });
 
-// 启动服务器
+// 错误处理中间件
+app.use((err, req, res, next) => {
+    console.error('全局错误处理:', err);
+    res.status(500).json({ error: '服务器内部错误' });
+});
+
 app.listen(port, () => {
-    console.log(`服务器运行在 http://localhost:${port}`);
+    console.log(`服务器运行在端口 ${port}`);
 });
