@@ -1,6 +1,10 @@
 import express from 'express';
 import cors from 'cors';
 import fetch from 'node-fetch';
+import dotenv from 'dotenv';
+
+// 加载环境变量
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,8 +15,8 @@ app.use(express.json());
 app.use(express.static('.'));
 
 // API配置
-const API_KEY = '068552d9-debe-44e0-b03a-217a820c5cf8';
-const API_URL = 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
+const API_KEY = process.env.API_KEY || '068552d9-debe-44e0-b03a-217a820c5cf8';
+const API_URL = process.env.API_URL || 'https://ark.cn-beijing.volces.com/api/v3/chat/completions';
 
 // 系统预设消息
 const systemMessage = {
