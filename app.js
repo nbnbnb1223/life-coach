@@ -30,7 +30,8 @@ async function sendMessage(message) {
         userInput.style.height = 'auto';
         
         // 发送请求到服务器
-        const response = await fetch('http://localhost:3000/chat', {
+        const apiUrl = '/chat';
+        const response = await fetch(apiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -3,7 +3,7 @@ import cors from 'cors';
 import fetch from 'node-fetch';
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // 配置CORS和JSON解析
 app.use(cors());
